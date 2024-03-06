@@ -19,6 +19,7 @@ type DBConfig struct {
 	Host     string
 	Port     string
 	DSN      string
+	TestDSN  string
 }
 
 type AppConfig struct {
@@ -32,6 +33,7 @@ func New() (Config, error) {
 	}
 
 	dbName := os.Getenv("POSTGRES_DB")
+	testDbName := os.Getenv("POSTGRES_TEST_DB")
 	dbPassword := os.Getenv("POSTGRES_PASSWORD")
 	dbUser := os.Getenv("POSTGRES_USER")
 	dbHost := os.Getenv("POSTGRES_HOST")
@@ -41,6 +43,7 @@ func New() (Config, error) {
 
 	dsnFormat := "postgresql://%s:%s@%s:%s/%s?sslmode=disable"
 	dsn := fmt.Sprintf(dsnFormat, dbUser, dbPassword, dbHost, dbPort, dbName)
+	testDsn := fmt.Sprintf(dsnFormat, dbUser, dbPassword, dbHost, dbPort, testDbName)
 
 	dbConfig := DBConfig{
 		Name:     dbName,
@@ -49,6 +52,7 @@ func New() (Config, error) {
 		Host:     dbHost,
 		Port:     dbPort,
 		DSN:      dsn,
+		TestDSN:  testDsn,
 	}
 
 	appConfig := AppConfig{

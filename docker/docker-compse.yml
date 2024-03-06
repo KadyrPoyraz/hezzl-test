@@ -13,6 +13,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  nats:
+    image: nats
+    container_name: nuts
+    ports:
+      - "8222:8222"
+    command: "--cluster_name NATS --cluster nats://0.0.0.0:6222 --http_port 8222 "
+    networks: ["nats"]
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    container_name: clickhouse
+    env_file: ../.env
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ports:
+      - "8002:9000"
+      - "9123:8123"
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262144
+        hard: 262144
+    networks:
+      - ch_network
+
+  cache:
+    image: redis:6.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - cache:/data
+
 volumes:
   postgres_data:
+    driver: local
+  clickhouse_data:
+    driver: local
+  cache:
+    driver: local
 
+networks:
+  nats:
+    name: nats
+  ch_network:
+    driver: bridge
