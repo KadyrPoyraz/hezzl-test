@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -17,6 +18,7 @@ type DBConfig struct {
 	User     string
 	Host     string
 	Port     string
+	DSN      string
 }
 
 type AppConfig struct {
@@ -37,12 +39,16 @@ func New() (Config, error) {
 
 	appPort := os.Getenv("APP_PORT")
 
+	dsnFormat := "postgresql://%s:%s@%s:%s/%s?sslmode=disable"
+	dsn := fmt.Sprintf(dsnFormat, dbUser, dbPassword, dbHost, dbPort, dbName)
+
 	dbConfig := DBConfig{
 		Name:     dbName,
 		Password: dbPassword,
 		User:     dbUser,
 		Host:     dbHost,
 		Port:     dbPort,
+		DSN:      dsn,
 	}
 
 	appConfig := AppConfig{

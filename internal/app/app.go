@@ -1,15 +1,14 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/KadyrPoyraz/httplayout/config"
-	helloworldhandler "github.com/KadyrPoyraz/httplayout/internal/handler/http/helloworld"
+	projectshandler "github.com/KadyrPoyraz/httplayout/internal/handler/http/projects"
 	"github.com/KadyrPoyraz/httplayout/internal/repository/db"
-	"github.com/KadyrPoyraz/httplayout/internal/repository/helloworld"
-	helloworldService "github.com/KadyrPoyraz/httplayout/internal/service/helloworld"
+	"github.com/KadyrPoyraz/httplayout/internal/repository/projects"
+	projectsService "github.com/KadyrPoyraz/httplayout/internal/service/projects"
 	"github.com/gorilla/mux"
 )
 
@@ -26,9 +25,6 @@ func New(cnf config.Config) App {
 func (a *app) Run() error {
     mainRouter := mux.NewRouter().PathPrefix("/api").Subrouter()
 
-    h := helloworldhandler.New()
-    h.Fill(mainRouter)
-
     dsnFormat := "postgresql://%s:%s@%s:%s/%s?sslmode=disable"
     dbCnf := a.cnf.DB
     dsn := fmt.Sprintf(dsnFormat, dbCnf.User, dbCnf.Password, dbCnf.Host, dbCnf.Port, dbCnf.Name)
@@ -36,17 +32,10 @@ func (a *app) Run() error {
     if err != nil {
         return err
     }
-    helloRepo := helloworld.NewPostgresqlRepo(db)
 
-    helloService := helloworldService.New(helloRepo)
-
-    ctx := context.Background()
-    users, err := helloService.SayHello(ctx)
-    if err != nil {
-        panic(err)
-    }
-
-    fmt.Println(users)
+    projectsRepo := projects.NewPostgresqlRepo(db)
+    projectsService := projectsService.New(db, projectsRepo)
+    projectshandler.New(mainRouter, projectsService)
 
     port := ":" + a.cnf.App.Port
     fmt.Printf("Server started on localhost%s\n", port)

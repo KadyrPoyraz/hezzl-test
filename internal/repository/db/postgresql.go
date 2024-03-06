@@ -2,8 +2,9 @@ package db
 
 import (
 	"context"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-    _ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgresqlDB struct {
@@ -11,7 +12,7 @@ type PostgresqlDB struct {
 }
 
 type PostgresqlTx struct {
-	*sqlx.Tx
+	Txm *sqlx.Tx
 	context.Context
 }
 
@@ -21,9 +22,9 @@ func NewPostgresqlDB(dsn string) (*PostgresqlDB, error) {
 		return nil, err
 	}
 
-    if err := db.Ping(); err != nil {
-        return nil, err
-    }
+	if err := db.Ping(); err != nil {
+		return nil, err
+	}
 
 	postgresqlDb := &PostgresqlDB{db}
 
@@ -37,7 +38,19 @@ func (db *PostgresqlDB) StartTransaction(ctx context.Context) (Transaction, erro
 	}
 
 	return &PostgresqlTx{
-		Tx:      tx,
+		Txm:     tx,
 		Context: ctx,
 	}, nil
+}
+
+func (tx *PostgresqlTx) Tx() *sqlx.Tx {
+	return tx.Txm
+}
+
+func (tx *PostgresqlTx) Commit() error {
+    return tx.Commit()
+}
+
+func (tx *PostgresqlTx) Rollback() error {
+    return tx.Rollback()
 }
